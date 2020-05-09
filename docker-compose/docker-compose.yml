@@ -1,4 +1,4 @@
-#tag: 00_00_01 date:11/04/2020
+#tag: 00_00_02 date:12/04/2020
 version: '2'
 #variables a définir :
 ##{RCON_PASSWORD}
@@ -8,15 +8,19 @@ services:
 ###### Config de BungeeCord ##########
   bungeecord:
     image: itzg/bungeecord
+    networks:
+      minecraftrcon_default:
+        ipv4_address: 172.18.0.2
     container_name: bungeecord_app
     ports:
       - "25565:25577"
+    #mem_limit: 52m
     volumes:
       - "/apps/minecraftrcon/volumes/bungeecord/:/server"
     environment:
-      MEMORY: "25m"
+      #MEMORY: "52m"
       INIT_MEMORY: "15m"
-      MAX_MEMORY: "25m"
+      MAX_MEMORY: "52m"
       BUNGEE_JOB_ID: "lastStableBuild"
       ONLINE_MODE: "TRUE"
     restart: always
@@ -25,20 +29,28 @@ services:
 ### serv privé ####
   aiolos:
     image: itzg/minecraft-server
+    networks:
+      minecraftrcon_default:
+        ipv4_address: 172.18.0.3
     container_name: aiolos_app
     ports:
       - "25000:25565"
+    #mem_limit: 512m
     volumes:
       - "/apps/minecraftrcon/volumes/serveurs/aiolos:/data"
     environment:
       EULA: "TRUE"
       OVERRIDE_SERVER_PROPERTIES: "true"
       ENABLE_RCON: "true"
+      #MEMORY: "512m"
+      INIT_MEMORY: "256m"
+      MAX_MEMORY: "500m"
       RCON_PASSWORD: ${RCON_PASSWORD}
       ONLINE_MODE: "FALSE"
       RCON_PORT: 28016
       TYPE: "SPIGOT"
       VERSION: "1.15.2"
+      FORCE_REDOWNLOAD: "true"
       # activer le remplacement des variables env
       REPLACE_ENV_VARIABLES: "TRUE"
       # définir un préfixe facultatif pour vos variables env que vous souhaitez remplacer
@@ -53,20 +65,28 @@ services:
 ### serv public ####
   shura:
     image: itzg/minecraft-server
+    networks:
+      minecraftrcon_default:
+        ipv4_address: 172.18.0.4
     container_name: shura_app
     ports:
       - "25001:25565"
+    #mem_limit: 512m
     volumes:
       - "/apps/minecraftrcon/volumes/serveurs/shura/:/data"
     environment:
       EULA: "TRUE"
       OVERRIDE_SERVER_PROPERTIES: "true"
       ENABLE_RCON: "true"
+      #MEMORY: "512m"
+      INIT_MEMORY: "256m"
+      MAX_MEMORY: "500m"
       RCON_PASSWORD: ${RCON_PASSWORD}
       RCON_PORT: 28016
       ONLINE_MODE: "FALSE"
       TYPE: "SPIGOT"
       VERSION: "1.15.2"
+      FORCE_REDOWNLOAD: "true"
       # activer le remplacement des variables env
       REPLACE_ENV_VARIABLES: "TRUE"
       # définir un préfixe facultatif pour vos variables env que vous souhaitez remplacer
@@ -82,9 +102,20 @@ services:
 ###### rcon Web panel #############
   rcon:
     image: itzg/rcon
+    networks:
+      minecraftrcon_default:
+        ipv4_address: 172.18.0.5
     container_name: mc_console
     ports:
       - "4326:4326"
       - "4327:4327"
     volumes:
       - "/apps/minecraftrcon/volumes/rcon/:/opt/rcon-web-admin/db"
+
+networks:
+  minecraftrcon_default:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.18.0.0/16
+         gateway: 172.18.0.1
