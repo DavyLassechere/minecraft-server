@@ -1,20 +1,41 @@
+#tag: 00_00_01 date:11/04/2020
 version: '2'
 #variables a définir :
-#{RCON_PASSWORD}
-#{CFG_DB_PASSWORD}
+##{RCON_PASSWORD}
+##{CFG_DB_PASSWORD}
 
 services:
-  minecraft:
-    image: itzg/minecraft-server
-    container_name: mc_app
+###### Config de BungeeCord ##########
+  bungeecord:
+    image: itzg/bungeecord
+    container_name: bungeecord_app
     ports:
-      - "25565:25565"
+      - "25565:25577"
     volumes:
-      - "/apps/minecraftrcon/volumes/mc/:/data"
+      - "/apps/minecraftrcon/volumes/bungeecord/:/server"
+    environment:
+      MEMORY: "25m"
+      INIT_MEMORY: "15m"
+      MAX_MEMORY: "25m"
+      BUNGEE_JOB_ID: "lastStableBuild"
+      ONLINE_MODE: "TRUE"
+    restart: always
+###### Config des serveurs : ###########
+
+### serv privé ####
+  aiolos:
+    image: itzg/minecraft-server
+    container_name: aiolos_app
+    ports:
+      - "25000:25565"
+    volumes:
+      - "/apps/minecraftrcon/volumes/serveurs/aiolos:/data"
     environment:
       EULA: "TRUE"
+      OVERRIDE_SERVER_PROPERTIES: "true"
       ENABLE_RCON: "true"
-      RCON_PASSWORD: {RCON_PASSWORD}
+      RCON_PASSWORD: ${RCON_PASSWORD}
+      ONLINE_MODE: "FALSE"
       RCON_PORT: 28016
       TYPE: "SPIGOT"
       VERSION: "1.15.2"
@@ -25,8 +46,40 @@ services:
       # et voici les variables réelles
       CFG_DB_HOST: "http://localhost:3306"
       CFG_DB_NAME: "minecraft"
-      CFG_DB_PASSWORD: {CFG_DB_PASSWORD}
+      CFG_DB_PASSWORD: ${CFG_DB_PASSWORD}
     restart: always
+    depends_on:
+    - bungeecord
+### serv public ####
+  shura:
+    image: itzg/minecraft-server
+    container_name: shura_app
+    ports:
+      - "25001:25565"
+    volumes:
+      - "/apps/minecraftrcon/volumes/serveurs/shura/:/data"
+    environment:
+      EULA: "TRUE"
+      OVERRIDE_SERVER_PROPERTIES: "true"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: ${RCON_PASSWORD}
+      RCON_PORT: 28016
+      ONLINE_MODE: "FALSE"
+      TYPE: "SPIGOT"
+      VERSION: "1.15.2"
+      # activer le remplacement des variables env
+      REPLACE_ENV_VARIABLES: "TRUE"
+      # définir un préfixe facultatif pour vos variables env que vous souhaitez remplacer
+      ENV_VARIABLE_PREFIX: "CFG_"
+      # et voici les variables réelles
+      CFG_DB_HOST: "http://localhost:3306"
+      CFG_DB_NAME: "minecraft"
+      CFG_DB_PASSWORD: ${CFG_DB_PASSWORD}
+    restart: always
+    depends_on:
+    - bungeecord
+
+###### rcon Web panel #############
   rcon:
     image: itzg/rcon
     container_name: mc_console
