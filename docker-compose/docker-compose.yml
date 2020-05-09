@@ -1,0 +1,37 @@
+version: '2'
+#variables a définir :
+#{RCON_PASSWORD}
+#{CFG_DB_PASSWORD}
+
+services:
+  minecraft:
+    image: itzg/minecraft-server
+    container_name: mc_app
+    ports:
+      - "25565:25565"
+    volumes:
+      - "/apps/minecraftrcon/volumes/mc/:/data"
+    environment:
+      EULA: "TRUE"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: {RCON_PASSWORD}
+      RCON_PORT: 28016
+      TYPE: "SPIGOT"
+      VERSION: "1.15.2"
+      # activer le remplacement des variables env
+      REPLACE_ENV_VARIABLES: "TRUE"
+      # définir un préfixe facultatif pour vos variables env que vous souhaitez remplacer
+      ENV_VARIABLE_PREFIX: "CFG_"
+      # et voici les variables réelles
+      CFG_DB_HOST: "http://localhost:3306"
+      CFG_DB_NAME: "minecraft"
+      CFG_DB_PASSWORD: {CFG_DB_PASSWORD}
+    restart: always
+  rcon:
+    image: itzg/rcon
+    container_name: mc_console
+    ports:
+      - "4326:4326"
+      - "4327:4327"
+    volumes:
+      - "/apps/minecraftrcon/volumes/rcon/:/opt/rcon-web-admin/db"
